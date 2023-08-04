@@ -10,7 +10,7 @@ import codecs
 app = FastAPI()
 
 rows = []
-with open('MLOps-Project\steam_games.json') as d: 
+with open('steam_games.json') as d: 
     for line in d.readlines():
             rows.append(ast.literal_eval(line))
 df = pd.DataFrame(rows)
