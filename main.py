@@ -36,7 +36,7 @@ df["app_name"] = df["app_name"].astype(str)
 async def root():
     return {"message": "Hello World"}
 
-@app.get('/')
+@app.get('/genre/')
 def genero(year : str):
     df_filtrado = df[df["release_year"] == int(year)]
     df_filtrado["genres"] = df_filtrado["genres"].str.replace(r'\[|\]', '').str.replace("'", "").str.split(", ")
@@ -45,14 +45,14 @@ def genero(year : str):
     top_5_generos = generos_lanzados.head(5)
     return top_5_generos.index.tolist()
 
-@app.get('/')
+@app.get('/games/')
 def juegos(year : str):
     df_filtrado = df[df["release_year"] == int(year)]
     df_filtrado["app_name"] = df_filtrado["app_name"].str.replace(r'\[|\]', '').str.replace("'", "").str.split(", ")
     juegos_lanzados = df_filtrado["app_name"].tolist()
     return juegos_lanzados
 
-@app.get('/')
+@app.get('/specs/')
 def specs(year: str):
     df_filtrado = df[df["release_year"] == int(year)]
     lista_specs = [spec for sublist in df_filtrado["specs"] for spec in sublist]
@@ -61,21 +61,21 @@ def specs(year: str):
     resultado_dict = top_5_specs.to_dict()
     return resultado_dict
 
-@app.get('/')
+@app.get('/earlyaccess/')
 def earlyacces(year: str):
     '''df["release_date"] = pd.to_datetime(df["release_date"])'''
     df_filtrado = df[df["release_year"] == int(year)]
     juegos_early_access = df_filtrado["early_access"].sum()
     return print('En el año', year, 'fueron lanzados', juegos_early_access, 'con early access.')
 
-@app.get('/')
+@app.get('/sentiment/')
 def sentiment(year: str):
     df_filtrado = df[df["release_year"] == int(year)]
     sentiment_counts = df_filtrado["sentiment"].value_counts()
     resultado_dict = sentiment_counts.to_dict()
     return resultado_dict
 
-@app.get('/')
+@app.get('/metascore/')
 def metascore(year: str):
     df_filtrado = df[df["release_year"] == int(year)]
     df_filtrado["metascore"] = pd.to_numeric(df_filtrado["metascore"])
