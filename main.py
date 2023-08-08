@@ -2,10 +2,15 @@ from fastapi import FastAPI, File, UploadFile, Path
 from fastapi.responses import JSONResponse
 import json
 import pandas as pd
+import numpy as np
 from dateutil.parser import parse
 import ast
 import csv
 import codecs
+import pickle
+import joblib
+from pydantic import BaseModel
+
 
 app = FastAPI()
 
@@ -82,3 +87,28 @@ def metascore(year: str):
     top_5_juegos = df_filtrado.nlargest(5, "metascore")
     resultados = top_5_juegos.set_index("app_name")["metascore"].to_dict()
     return resultados
+
+model = joblib.load('definitive_lightgbm_model.pkl')
+
+class PredictionInput(BaseModel):
+    genero: str
+    earlyaccess: bool
+    release_year: int
+    metascore: int
+
+@app.get('/predict')
+async def predict_price(input_data: PredictionInput):
+    input_df = pd.DataFrame([input_data.dict()])
+
+    # one hot encodinig
+    genres_encoded = pd.get_dummies(input_df['genero'])
+    input_df = pd.concat([input_df, genres_encoded], axis=1)
+    input_df.drop(columns=['genero'], inplace=True)
+
+    # prediccion
+    predicted_price = model.predict(input_df)
+    # RMSE
+    y_true = np.array([predicted_price[0]])  # Valor predicho convertido a numpy array
+    rmse = np.sqrt(np.mean((y_true - predicted_price) ** 2))
+    
+    return {"predicted_price": predicted_price[0], "rmse": rmse}
