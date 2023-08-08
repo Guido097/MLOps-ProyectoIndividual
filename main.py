@@ -92,8 +92,13 @@ model = joblib.load('definitive_lightgbm_model.pkl')
 
 
 @app.get('/predict')
-async def predict_price(genre : str , earlyaccess : bool, year : int, metascore : int):
-    input_df = pd.DataFrame([genre , earlyaccess , year, metascore])
+async def predict_price(genre : str , early_access : bool, year : int, metascore : int):
+    input_df = pd.DataFrame({
+        "early_access": [early_access],
+        "genre": [genre],
+        "metascore": [metascore],
+        "año": [year]
+    })
 
     # one hot encodinig
     genres_encoded = pd.get_dummies(input_df['genre'])
