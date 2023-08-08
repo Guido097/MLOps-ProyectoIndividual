@@ -90,20 +90,15 @@ def metascore(year: str):
 
 model = joblib.load('definitive_lightgbm_model.pkl')
 
-class PredictionInput(BaseModel):
-    genero: str
-    earlyaccess: bool
-    release_year: int
-    metascore: int
 
 @app.get('/predict')
-async def predict_price(input_data: PredictionInput):
-    input_df = pd.DataFrame([input_data])
+async def predict_price(genre : str , earlyaccess : bool, year : int, metascore : int):
+    input_df = pd.DataFrame([genre , earlyaccess , year, metascore])
 
     # one hot encodinig
-    genres_encoded = pd.get_dummies(input_df['genero'])
+    genres_encoded = pd.get_dummies(input_df['genre'])
     input_df = pd.concat([input_df, genres_encoded], axis=1)
-    input_df.drop(columns=['genero'], inplace=True)
+    input_df.drop(columns=['genre'], inplace=True)
 
     # prediccion
     predicted_price = model.predict(input_df)
