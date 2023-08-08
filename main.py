@@ -164,7 +164,7 @@ async def predict_price(genre : str , early_access : bool, year : int, metascore
 
        
     predicted_price = model.predict(input_df)[0]
-    return {"predicted_price": predicted_price[0]}
+    return {"predicted_price": predicted_price[0] , 'RMSE:':rmse}
     
     
     # prediccion
