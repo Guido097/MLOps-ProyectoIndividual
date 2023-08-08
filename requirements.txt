@@ -20,4 +20,4 @@ tzdata==2023.3
 uvicorn==0.22.0
 joblib
 lightgbm
-sklearn
+scikit-learn
