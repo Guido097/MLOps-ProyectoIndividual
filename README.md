@@ -4,18 +4,28 @@
 Esta API proporciona información sobre los juegos de Steam, incluyendo géneros, especificaciones, fechas de lanzamiento, puntuaciones y más. Puedes utilizar esta API para obtener datos relevantes sobre los juegos lanzados en diferentes años.
 
 ## Endpoints Disponibles
+
 / : Devuelve un mensaje de bienvenida.
+
 /genre/{year} : Obtiene los géneros más populares de los juegos lanzados en el año especificado.
+
 /games/{year} : Devuelve la lista de nombres de juegos lanzados en el año especificado.
+
 /specs/{year} : Obtiene las especificaciones más comunes de los juegos lanzados en el año especificado.
+
 /earlyaccess/{year} : Devuelve la cantidad de juegos lanzados con acceso temprano en el año especificado.
+
 /sentiment/{year} : Obtiene el sentimiento predominante en los comentarios de los juegos lanzados en el año especificado.
+
 /metascore/{year} : Devuelve los nombres y puntajes de los juegos con las mejores puntuaciones en el año especificado.
+
 /predict/ : Realiza una predicción del precio de un juego basado en los atributos ingresados.
-Uso de la API
+
+## Uso de la API
+
 Para utilizar la API, simplemente realiza una solicitud GET a los diferentes endpoints mencionados anteriormente. Puedes proporcionar el año como un parámetro en la URL para obtener información específica de ese año.
 
-## Ejemplos de Uso
+**Ejemplos de Uso**
 
 Para obtener los géneros más populares de los juegos lanzados en el año 2021: GET /genre/2021
 
