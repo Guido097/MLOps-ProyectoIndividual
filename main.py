@@ -10,6 +10,8 @@ import codecs
 import pickle
 import joblib
 from pydantic import BaseModel
+from sklearn.preprocessing import LabelEncoder
+
 
 
 app = FastAPI()
@@ -36,11 +38,21 @@ df.drop("url", axis=1, inplace=True)
 df["release_year"] = df["release_year"].astype(int)
 df["genres"] = df["genres"].astype(str)
 df["app_name"] = df["app_name"].astype(str)
-df['genres']  = df['genres'].str.replace('[','',regex=True).replace(']','',regex=True).replace("'","",regex=True)
-genres_df = df['genres'].str.get_dummies(', ')
-genres_df.columns = [col.capitalize() for col in genres_df.columns]
-df = pd.concat([df, genres_df], axis=1)
 
+# Dividir los géneros y convertirlos en una lista de géneros únicos
+df['genres']  = df['genres'].str.replace('[','',regex=True).replace(']','',regex=True).replace("'","",regex=True)
+df['genres'] = df['genres'].str.split(', ')
+df = df.explode('genres', ignore_index=True)
+# Aplicar Label Encoder a la columna 'Genres'
+label_encoder_genres = LabelEncoder()
+df['encoded_genres'] = label_encoder_genres.fit_transform(df['genres'])
+
+unique_release_years = df["release_year"].unique()
+unique_release_years_str = [str(year) for year in unique_release_years]
+
+"""#Cargo el label_encoder
+label_encoder = joblib.load('label_encoder.pkl')
+"""
 @app.get("/")
 async def root():
     return {"message": "Hello World"}
@@ -79,10 +91,15 @@ def earlyacces(year: str):
 
 @app.get('/sentiment/')
 def sentiment(year: str):
-    df_filtrado = df[df["release_year"] == int(year)]
-    sentiment_counts = df_filtrado["sentiment"].value_counts()
-    resultado_dict = sentiment_counts.to_dict()
-    return resultado_dict
+    if int(year) in unique_release_years:
+        df_filtrado = df[df["release_year"] == int(year)]
+        sentiment_counts = df_filtrado["sentiment"].value_counts()
+        filtered_sentiments = sentiment_counts.index[~sentiment_counts.index.str.contains("user reviews")]
+        filtered_counts = sentiment_counts.loc[filtered_sentiments]
+        resultado_dict = filtered_counts.to_dict()
+        return resultado_dict
+    if not (year) in unique_release_years or unique_release_years_str:
+        return year, 'No es un valor que se encuentre en la base de datos.'
 
 @app.get('/metascore/')
 def metascore(year: str):
@@ -94,9 +111,30 @@ def metascore(year: str):
 
 model = joblib.load('definitive_lightgbm_model.pkl')
 
+#Limpio la columna Metascore y normalizo
+df['metascore'] = pd.to_numeric(df['metascore'], errors='coerce')
+df['metascore'].fillna(0, inplace=True)
+df['metascore'] = df['metascore'].astype(int)
+#Limpio la columna Price y normalizo
+df['price'] = df['price'].replace(['Free To Play', 'Free', 'Free HITMAN™ Holiday Pack','Free to Play','Play for Free!','Free Mod','Free Demo', 'nan'], '0')
+# Convertir los valores a números (opcional)
+df['price'] = pd.to_numeric(df['price'], errors='coerce')
+#Relleno los nulos con 0
+df['price'].fillna(0, inplace=True)
 
-@app.get('/predict')
+
+#Saco outliers
+Q1 = df['price'].quantile(0.25)
+Q3 = df['price'].quantile(0.75)
+IQR = Q3 - Q1
+lower_limit = Q1 - 1.5 * IQR
+upper_limit = Q3 + 1.5 * IQR
+df_outliers = df[(df['price'] >= lower_limit) & (df['price'] <= upper_limit)]
+
+@app.post('/predict')
 async def predict_price(genre : str , early_access : bool, year : int, metascore : int):
+    genre_encoded = label_encoder.transform([genre])[0]
+        
     input_df = pd.DataFrame({
         "early_access": [early_access],
         "genre": [genre],
@@ -104,11 +142,11 @@ async def predict_price(genre : str , early_access : bool, year : int, metascore
         "año": [year]
     })
 
-    # one hot encodinig
-    genres_encoded = pd.get_dummies(input_df['genre'])
-    input_df = pd.concat([input_df, genres_encoded], axis=1)
-    input_df.drop(columns=['genre'], inplace=True)
-
+       
+    predicted_price = model.predict(input_df)[0]
+    return {"predicted_price": predicted_price[0]}
+    
+    
     # prediccion
     predicted_price = model.predict(input_df)
     # RMSE
