@@ -11,6 +11,10 @@ import pickle
 import joblib
 from pydantic import BaseModel
 from sklearn.preprocessing import LabelEncoder
+import lightgbm as lgb
+from sklearn.model_selection import train_test_split
+from sklearn.linear_model import LinearRegression
+from sklearn.metrics import r2_score, mean_squared_error
 
 
 
@@ -50,9 +54,6 @@ df['encoded_genres'] = label_encoder_genres.fit_transform(df['genres'])
 unique_release_years = df["release_year"].unique()
 unique_release_years_str = [str(year) for year in unique_release_years]
 
-"""#Cargo el label_encoder
-label_encoder = joblib.load('label_encoder.pkl')
-"""
 @app.get("/")
 async def root():
     return {"message": "Hello World"}
@@ -109,7 +110,6 @@ def metascore(year: str):
     resultados = top_5_juegos.set_index("app_name")["metascore"].to_dict()
     return resultados
 
-model = joblib.load('lightgbm_model.pkl')
 
 #Limpio la columna Metascore y normalizo
 df['metascore'] = pd.to_numeric(df['metascore'], errors='coerce')
@@ -131,9 +131,29 @@ lower_limit = Q1 - 1.5 * IQR
 upper_limit = Q3 + 1.5 * IQR
 df_outliers = df[(df['price'] >= lower_limit) & (df['price'] <= upper_limit)]
 
+#Creo el modelo de ML
+X = df_outliers[['encoded_genres', 'early_access', 'year', 'metascore']]
+y = df_outliers['price']
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+# Crear y ajustar el modelo
+model = lgb.LGBMRegressor(random_state=42)
+model.fit(X_train, y_train)
+
+# Predecir el precio en el conjunto de prueba
+y_pred = model.predict(X_test)
+force_row_wise = True
+# Calcular el coeficiente de determinación (R^2)
+r2 = r2_score(y_test, y_pred)*100
+print("R^2 Score (LightGBM):", r2.round(2))
+
+# Calcular la raíz del error cuadrado medio (RMSE)
+rmse = np.sqrt(mean_squared_error(y_test, y_pred))
+print("RMSE (LightGBM):", rmse)
+
 @app.post('/predict')
 async def predict_price(genre : str , early_access : bool, year : int, metascore : int):
-    genre_encoded = label_encoder.transform([genre])[0]
+    genre_encoded = label_encoder_genres.transform([genre])[0]
         
     input_df = pd.DataFrame({
         "early_access": [early_access],
