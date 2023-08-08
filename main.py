@@ -171,7 +171,7 @@ force_row_wise = True
 rmse = np.sqrt(mean_squared_error(y_test, y_pred))
 
 
-label_encoder = joblib.load('scr/label_encoder.pkl')
+label_encoder = joblib.load('label_encoder.pkl')
 
 
 @app.get('/predict/')
