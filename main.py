@@ -36,6 +36,10 @@ df.drop("url", axis=1, inplace=True)
 df["release_year"] = df["release_year"].astype(int)
 df["genres"] = df["genres"].astype(str)
 df["app_name"] = df["app_name"].astype(str)
+df['genres']  = df['genres'].str.replace('[','',regex=True).replace(']','',regex=True).replace("'","",regex=True)
+genres_df = df['genres'].str.get_dummies(', ')
+genres_df.columns = [col.capitalize() for col in genres_df.columns]
+df = pd.concat([df, genres_df], axis=1)
 
 @app.get("/")
 async def root():
