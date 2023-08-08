@@ -150,9 +150,9 @@ r2 = r2_score(y_test, y_pred)*100
 rmse = np.sqrt(mean_squared_error(y_test, y_pred))
 
 @app.get('/predict')
-async def predict_price(genre : str , early_access : bool, year : int, metascore : int):
+async def predict_price(genre : str , early_access : bool , year : int, metascore : int):
     genre_encoded = label_encoder_genres.transform([genre])[0]
-        
+    early_access = early_access.lower() == "true"
     input_df = pd.DataFrame({
         "early_access": [early_access],
         "genre": [genre],
