@@ -1,5 +1,5 @@
 # MLOps-ProyectoIndividual
-*** Steam Games API ***
+##  Steam Games API 
 
 Esta API proporciona información sobre los juegos de Steam, incluyendo géneros, especificaciones, fechas de lanzamiento, puntuaciones y más. Puedes utilizar esta API para obtener datos relevantes sobre los juegos lanzados en diferentes años.
 
