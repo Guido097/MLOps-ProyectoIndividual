@@ -151,7 +151,7 @@ print("R^2 Score (LightGBM):", r2.round(2))
 rmse = np.sqrt(mean_squared_error(y_test, y_pred))
 print("RMSE (LightGBM):", rmse)
 
-@app.post('/predict')
+@app.get('/predict')
 async def predict_price(genre : str , early_access : bool, year : int, metascore : int):
     genre_encoded = label_encoder_genres.transform([genre])[0]
         
