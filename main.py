@@ -109,7 +109,7 @@ def metascore(year: str):
     resultados = top_5_juegos.set_index("app_name")["metascore"].to_dict()
     return resultados
 
-model = joblib.load('definitive_lightgbm_model.pkl')
+model = joblib.load('lightgbm_model.pkl')
 
 #Limpio la columna Metascore y normalizo
 df['metascore'] = pd.to_numeric(df['metascore'], errors='coerce')
