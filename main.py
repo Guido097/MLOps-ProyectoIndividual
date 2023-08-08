@@ -132,7 +132,7 @@ upper_limit = Q3 + 1.5 * IQR
 df_outliers = df[(df['price'] >= lower_limit) & (df['price'] <= upper_limit)]
 
 #Creo el modelo de ML
-X = df_outliers[['encoded_genres', 'early_access', 'year', 'metascore']]
+X = df_outliers[['encoded_genres', 'early_access', 'release_year', 'metascore']]
 y = df_outliers['price']
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 
@@ -145,11 +145,9 @@ y_pred = model.predict(X_test)
 force_row_wise = True
 # Calcular el coeficiente de determinación (R^2)
 r2 = r2_score(y_test, y_pred)*100
-print("R^2 Score (LightGBM):", r2.round(2))
 
 # Calcular la raíz del error cuadrado medio (RMSE)
 rmse = np.sqrt(mean_squared_error(y_test, y_pred))
-print("RMSE (LightGBM):", rmse)
 
 @app.get('/predict')
 async def predict_price(genre : str , early_access : bool, year : int, metascore : int):
@@ -159,7 +157,7 @@ async def predict_price(genre : str , early_access : bool, year : int, metascore
         "early_access": [early_access],
         "genre": [genre],
         "metascore": [metascore],
-        "año": [year]
+        "release_year": [year]
     })
 
        
