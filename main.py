@@ -150,25 +150,47 @@ r2 = r2_score(y_test, y_pred)*100
 rmse = np.sqrt(mean_squared_error(y_test, y_pred))
 
 @app.get('/predict')
-async def predict_price(genre : str , early_access : bool , year : int, metascore : int):
+async def predict_price(genre , early_access : bool , year : int, metascore : int):
+    #encoded_genres = label_encoder_genres.transform([genre])[0]
     genre_encoded = label_encoder_genres.transform([genre])[0]
     early_access = early_access.lower() == "true"
     input_df = pd.DataFrame({
         "early_access": [early_access],
-        "genre": [genre],
+        "genre": [genre_encoded],
         "metascore": [metascore],
         "release_year": [year]
     })
 
        
     predicted_price = model.predict(input_df)[0]
-    return {"predicted_price": predicted_price[0] , 'RMSE:':rmse}
+    return {"predicted_price": predicted_price , 'RMSE:':rmse}
+
+
+
+#Carga de modelo
+with open('lightgbm_model.pkl', 'wb') as f:
+    pickle.dump(model, f)
+
+with open('lightgbm_model.pkl', 'rb') as f:
+    loaded_model = pickle.load(f)
+
+label_encoder = joblib.load('label_encoder.pkl')
+
+
+@app.get('/predict/')
+def predict(genre, early_access : bool, metascore:int, year:int):
+    # Obtener el valor codificado del género usando el LabelEncoder
+    genre_encoded = label_encoder.transform([genre])[0]
+        
+    # Crear un DataFrame con las características ingresadas
+    data = pd.DataFrame({
+        "early_access": [early_access],
+        "metascore": [metascore],
+        "release_year": [year],
+        "genres_encoded": [genre_encoded],
+    })
     
-    
-    # prediccion
-    predicted_price = model.predict(input_df)
-    # RMSE
-    y_true = np.array([predicted_price[0]])  # Valor predicho convertido a numpy array
-    rmse = np.sqrt(np.mean((y_true - predicted_price) ** 2))
-    
-    return {"predicted_price": predicted_price[0], "rmse": rmse}
+    # Realizar la predicción del precio utilizando el modelo entrenado
+    price_predicted = model.predict(data)[0]
+
+    return {'Precio': price_predicted, "RMSE del modelo": rmse}
