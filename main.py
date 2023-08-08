@@ -98,7 +98,7 @@ class PredictionInput(BaseModel):
 
 @app.get('/predict')
 async def predict_price(input_data: PredictionInput):
-    input_df = pd.DataFrame([input_data.dict()])
+    input_df = pd.DataFrame([input_data])
 
     # one hot encodinig
     genres_encoded = pd.get_dummies(input_df['genero'])
