@@ -171,9 +171,6 @@ force_row_wise = True
 rmse = np.sqrt(mean_squared_error(y_test, y_pred))
 
 
-with open('lightgbm_model.pkl', 'rb') as f:
-    loaded_model = pickle.load(f)
-
 label_encoder = joblib.load('label_encoder.pkl')
 
 
